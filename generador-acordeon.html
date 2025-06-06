@@ -1,1 +1,546 @@
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 Generador Simple de Acordeón para Moodle</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh; 
+            padding: 20px; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 15px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+        }
+        .header { 
+            background: linear-gradient(135deg, #2c3e50, #34495e); 
+            color: white; 
+            padding: 30px; 
+            text-align: center; 
+        }
+        .header h1 { 
+            font-size: 2.5em; 
+            margin-bottom: 10px; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3); 
+        }
+        .content { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            min-height: 600px; 
+        }
+        .form-panel { 
+            padding: 30px; 
+            background: #f8f9fa; 
+            border-right: 2px solid #e9ecef; 
+        }
+        .preview-panel { 
+            padding: 30px; 
+        }
+        .form-section { 
+            background: white; 
+            border-radius: 10px; 
+            padding: 20px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        .section-title { 
+            color: #2c3e50; 
+            font-size: 1.3em; 
+            font-weight: 600; 
+            margin-bottom: 15px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+        .form-group label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: #2c3e50; 
+        }
+        .form-group input, .form-group textarea { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid #e9ecef; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            transition: all 0.3s ease; 
+            font-family: inherit; 
+        }
+        .form-group input:focus, .form-group textarea:focus { 
+            outline: none; 
+            border-color: #2c3e50; 
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1); 
+        }
+        .btn { 
+            background: linear-gradient(135deg, #2c3e50, #34495e); 
+            color: white; 
+            border: none; 
+            padding: 12px 25px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 14px; 
+            transition: all 0.3s ease; 
+            margin: 5px; 
+        }
+        .btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(44, 62, 80, 0.3); 
+        }
+        .btn-success { 
+            background: linear-gradient(135deg, #27ae60, #229954); 
+        }
+        .btn-secondary { 
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d); 
+        }
+        .content-item { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 12px; 
+            align-items: center; 
+        }
+        .content-item input { 
+            flex: 1; 
+        }
+        .code-output { 
+            background: #2c3e50; 
+            color: #ecf0f1; 
+            padding: 20px; 
+            border-radius: 10px; 
+            font-family: 'Courier New', monospace; 
+            font-size: 12px; 
+            white-space: pre-wrap; 
+            max-height: 500px; 
+            overflow-y: auto; 
+            line-height: 1.4; 
+        }
+        .preview-container { 
+            border: 2px solid #e9ecef; 
+            border-radius: 10px; 
+            padding: 20px; 
+            margin-bottom: 20px; 
+            background: #f8f9fa; 
+        }
+        .char-counter { 
+            font-size: 11px; 
+            color: #6c757d; 
+            text-align: right; 
+            margin-top: 5px; 
+        }
+        @media (max-width: 768px) { 
+            .content { 
+                grid-template-columns: 1fr; 
+            } 
+        }
+        .notification { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            padding: 15px 20px; 
+            border-radius: 8px; 
+            color: white; 
+            font-weight: 600; 
+            z-index: 1000; 
+            transform: translateX(400px); 
+            transition: transform 0.3s ease; 
+        }
+        .notification.success { 
+            background: #27ae60; 
+        }
+        .notification.error { 
+            background: #e74c3c; 
+        }
+        .notification.show { 
+            transform: translateX(0); 
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎨 Generador Simple de Acordeón para Moodle</h1>
+        <p>Crea acordeones con el diseño limpio y profesional que necesitas</p>
+    </div>
+    
+    <div class="content">
+        <div class="form-panel">
+            <!-- Configuración del Título -->
+            <div class="form-section">
+                <div class="section-title">🏷️ Título Principal</div>
+                
+                <div class="form-group">
+                    <label>Título del Acordeón:</label>
+                    <input type="text" id="titulo" value="TRANSFORMACIÓN DIGITAL CON MOODLE Y DRIVE" maxlength="100" oninput="updatePreview();" placeholder="Escribe el título principal">
+                    <div class="char-counter"><span id="titulo-count">42</span>/100</div>
+                </div>
+            </div>
+            <!-- Configuración de Capacidades -->
+            <div class="form-section">
+                <div class="section-title">⚙️ Capacidades a Desarrollar</div>
+                
+                <div class="form-group">
+                    <label>Descripción de Capacidades:</label>
+                    <textarea id="capacidades" rows="4" maxlength="800" oninput="updatePreview();" placeholder="Describe las capacidades que se desarrollarán...">Desarrollar habilidades para la navegación y uso eficaz de Moodle, mejorando la gestión de recursos educativos.
+Aplicar estrategias de búsqueda de información en Internet para fomentar la autonomía del aprendizaje.
+Comprender el uso de la inteligencia artificial como herramienta de apoyo en entornos digitales.
+Integrar Moodle y Google Drive para una gestión eficiente del conocimiento.</textarea>
+                    <div class="char-counter"><span id="capacidades-count">476</span>/800</div>
+                </div>
+                <div class="form-group">
+                    <label>Título de la Sección Capacidades (opcional):</label>
+                    <input type="text" id="titulo-capacidades" value="Capacidad(es) o Componentes de Capacidad(es) a Desarrollar" maxlength="150" placeholder="Personaliza el título si deseas">
+                </div>
+            </div>
+            <!-- Configuración de Contenidos -->
+            <div class="form-section">
+                <div class="section-title">📁 Contenidos de la Unidad</div>
+                
+                <div class="form-group">
+                    <label>Título de la Sección Contenidos (opcional):</label>
+                    <input type="text" id="titulo-contenidos" value="Contenidos de la Unidad" maxlength="100" placeholder="Personaliza el título si deseas">
+                </div>
+                <div class="form-group">
+                    <label>Lista de Contenidos:</label>
+                    <div id="contenidos-container">
+                        <div class="content-item">
+                            <input type="text" placeholder="Primer contenido..." value="Introducción a Moodle: navegación, configuración y funcionalidades principales.">
+                            <button class="btn btn-secondary" onclick="eliminarContenido(this)" style="padding: 8px 12px; font-size: 12px;">🗑️</button>
+                        </div>
+                        <div class="content-item">
+                            <input type="text" placeholder="Segundo contenido..." value="Uso de Google Drive: almacenamiento, organización y trabajo colaborativo en la nube.">
+                            <button class="btn btn-secondary" onclick="eliminarContenido(this)" style="padding: 8px 12px; font-size: 12px;">🗑️</button>
+                        </div>
+                        <div class="content-item">
+                            <input type="text" placeholder="Tercer contenido..." value="Trabajo colaborativo e IA: integración de herramientas digitales y automatización de tareas con inteligencia artificial.">
+                            <button class="btn btn-secondary" onclick="eliminarContenido(this)" style="padding: 8px 12px; font-size: 12px;">🗑️</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-success" onclick="agregarContenido()">+ Agregar Contenido</button>
+                </div>
+            </div>
+            <!-- Botones de Acción -->
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn btn-success" onclick="generarCodigo()">🚀 Generar Código para Moodle</button>
+                <button class="btn btn-secondary" onclick="limpiarFormulario()">🗑️ Limpiar Todo</button>
+            </div>
+        </div>
+        
+        <div class="preview-panel">
+            <h3>👀 Vista Previa</h3>
+            
+            <div class="preview-container" id="preview-container">
+                <p style="color: #6c757d; text-align: center; padding: 40px;">
+                    ✨ La vista previa aparecerá aquí automáticamente
+                </p>
+            </div>
+            
+            <div id="codigo-container" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>📋 Código para Moodle:</h3>
+                    <button class="btn btn-success" onclick="copiarCodigo()" id="btn-copiar">📋 Copiar Código</button>
+                </div>
+                <div class="code-output" id="codigo-output"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// Inicialización
+window.addEventListener('load', function() {
+    updateCharCounters();
+    updatePreview();
+});
+function updateCharCounters() {
+    const titulo = document.getElementById('titulo');
+    const capacidades = document.getElementById('capacidades');
+    
+    document.getElementById('titulo-count').textContent = titulo.value.length;
+    document.getElementById('capacidades-count').textContent = capacidades.value.length;
+}
+function updatePreview() {
+    updateCharCounters();
+    
+    const titulo = document.getElementById('titulo').value || 'TÍTULO DEL CURSO';
+    const capacidades = document.getElementById('capacidades').value || 'Capacidades a desarrollar...';
+    const tituloCapacidades = document.getElementById('titulo-capacidades').value || 'Capacidades';
+    const tituloContenidos = document.getElementById('titulo-contenidos').value || 'Contenidos';
+    
+    // Obtener contenidos
+    const contenidos = [];
+    document.querySelectorAll('#contenidos-container .content-item input').forEach(input => {
+        if (input.value.trim()) {
+            contenidos.push(input.value.trim());
+        }
+    });
+    
+    const previewContainer = document.getElementById('preview-container');
+    
+    let contenidosHTML = '';
+    contenidos.forEach(contenido => {
+        contenidosHTML += `<li style="margin: 5px 0; color: #555;">• ${contenido}</li>`;
+    });
+    
+    previewContainer.innerHTML = `
+        <div style="border: 1px solid #ddd; border-radius: 10px; padding: 20px; background: white;">
+            <div style="background: #2c3e50; color: white; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; font-size: 1.5em;">${titulo}</h2>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <div style="background: #34495e; color: white; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">
+                    ⚙️ ${tituloCapacidades}
+                </div>
+                <div style="padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-top: none;">
+                    <p style="margin: 0; color: #555; line-height: 1.6;">${capacidades}</p>
+                </div>
+            </div>
+            
+            <div>
+                <div style="background: #34495e; color: white; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">
+                    📁 ${tituloContenidos}
+                </div>
+                <div style="padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-top: none;">
+                    <ul style="margin: 0; padding-left: 20px; color: #555;">
+                        ${contenidosHTML}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 15px; padding: 10px; background: #e8f5e8; border-radius: 5px; text-align: center; font-size: 14px; color: #27ae60;">
+            ✨ Vista previa simplificada - El código generado tendrá el acordeón interactivo completo
+        </div>
+    `;
+}
+function agregarContenido() {
+    const container = document.getElementById('contenidos-container');
+    const html = `
+        <div class="content-item">
+            <input type="text" placeholder="Nuevo contenido..." oninput="updatePreview();">
+            <button class="btn btn-secondary" onclick="eliminarContenido(this)" style="padding: 8px 12px; font-size: 12px;">🗑️</button>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+    updatePreview();
+}
+function eliminarContenido(btn) {
+    if (document.querySelectorAll('#contenidos-container .content-item').length > 1) {
+        btn.parentElement.remove();
+        updatePreview();
+    } else {
+        showNotification('Debe haber al menos un contenido', 'error');
+    }
+}
+function limpiarFormulario() {
+    if (confirm('¿Estás seguro de que quieres limpiar todo el formulario?')) {
+        document.getElementById('titulo').value = '';
+        document.getElementById('capacidades').value = '';
+        document.getElementById('titulo-capacidades').value = 'Capacidad(es) o Componentes de Capacidad(es) a Desarrollar';
+        document.getElementById('titulo-contenidos').value = 'Contenidos de la Unidad';
+        
+        // Limpiar contenidos pero dejar uno
+        const container = document.getElementById('contenidos-container');
+        container.innerHTML = `
+            <div class="content-item">
+                <input type="text" placeholder="Primer contenido..." oninput="updatePreview();">
+                <button class="btn btn-secondary" onclick="eliminarContenido(this)" style="padding: 8px 12px; font-size: 12px;">🗑️</button>
+            </div>
+        `;
+        
+        document.getElementById('preview-container').innerHTML = '<p style="color: #6c757d; text-align: center; padding: 40px;">✨ La vista previa aparecerá aquí automáticamente</p>';
+        document.getElementById('codigo-container').style.display = 'none';
+        
+        updatePreview();
+        showNotification('Formulario limpiado correctamente', 'success');
+    }
+}
+function generarCodigo() {
+    const titulo = document.getElementById('titulo').value;
+    const capacidades = document.getElementById('capacidades').value;
+    const tituloCapacidades = document.getElementById('titulo-capacidades').value;
+    const tituloContenidos = document.getElementById('titulo-contenidos').value;
+    
+    if (!titulo.trim()) {
+        showNotification('El título es obligatorio', 'error');
+        return;
+    }
+    
+    if (!capacidades.trim()) {
+        showNotification('Las capacidades son obligatorias', 'error');
+        return;
+    }
+    
+    // Obtener contenidos
+    const contenidos = [];
+    document.querySelectorAll('#contenidos-container .content-item input').forEach(input => {
+        if (input.value.trim()) {
+            contenidos.push(input.value.trim());
+        }
+    });
+    
+    if (contenidos.length === 0) {
+        showNotification('Debe haber al menos un contenido', 'error');
+        return;
+    }
+    
+    const codigo = generarHTML(titulo, capacidades, tituloCapacidades, tituloContenidos, contenidos);
+    document.getElementById('codigo-output').textContent = codigo;
+    document.getElementById('codigo-container').style.display = 'block';
+    showNotification('Código generado correctamente', 'success');
+}
+function generarHTML(titulo, capacidades, tituloCapacidades, tituloContenidos, contenidos) {
+    // Generar lista de contenidos
+    let contenidosHTML = '';
+    contenidos.forEach((contenido, index) => {
+        const isLast = index === contenidos.length - 1;
+        const border = isLast ? '' : 'border-bottom: 1px solid #e9ecef;';
+        
+        contenidosHTML += `                    <li style="padding: 8px 0; ${border} color: #555; line-height: 1.6;">
+                        • ${contenido}
+                    </li>`;
+    });
+    return `<div style="max-width: 800px; margin: 0 auto; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f0f0; border-radius: 10px;">
+    
+    <!-- Título Principal -->
+    <div style="background: #2c3e50; color: white; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px;">
+        <h1 style="margin: 0; font-size: 1.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+            ${titulo}
+        </h1>
+    </div>
+    <!-- Icono Decorativo (opcional) -->
+    <div style="text-align: center; margin-bottom: 20px;">
+        <div style="display: inline-block; width: 80px; height: 80px; background: #34495e; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2em;">
+            ⚙️
+        </div>
+    </div>
+    <!-- Sección Capacidades -->
+    <div style="margin-bottom: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <button onclick="toggleAccordion('capacidades')" style="width: 100%; padding: 15px 20px; background: #34495e; color: white; border: none; text-align: left; font-size: 1em; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease;">
+            <span style="display: flex; align-items: center;">
+                <span style="font-size: 1.2em; margin-right: 10px;">⚙️</span>
+                a. ${tituloCapacidades}
+            </span>
+            <span id="icon-capacidades" style="font-size: 1.2em; transition: transform 0.3s ease;">▼</span>
+        </button>
+        <div id="content-capacidades" style="display: none; padding: 20px; background: white; border-top: 3px solid #34495e;">
+            <ul style="list-style: none; padding: 0; margin: 0; line-height: 1.8;">
+                <li style="padding: 5px 0; color: #555;">• ${capacidades.split('\n').join('</li><li style="padding: 5px 0; color: #555;">• ')}</li>
+            </ul>
+        </div>
+    </div>
+    <!-- Sección Contenidos -->
+    <div style="margin-bottom: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <button onclick="toggleAccordion('contenidos')" style="width: 100%; padding: 15px 20px; background: #34495e; color: white; border: none; text-align: left; font-size: 1em; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease;">
+            <span style="display: flex; align-items: center;">
+                <span style="font-size: 1.2em; margin-right: 10px;">📁</span>
+                b. ${tituloContenidos}
+            </span>
+            <span id="icon-contenidos" style="font-size: 1.2em; transition: transform 0.3s ease;">▼</span>
+        </button>
+        <div id="content-contenidos" style="display: none; padding: 20px; background: white; border-top: 3px solid #34495e;">
+            <ul style="list-style: none; padding: 0; margin: 0;">
+${contenidosHTML}
+            </ul>
+        </div>
+    </div>
+</div>
+<script>
+function toggleAccordion(section) {
+    var content = document.getElementById("content-" + section);
+    var icon = document.getElementById("icon-" + section);
+    
+    if (content.style.display === "none" || content.style.display === "") {
+        // Cerrar todas las secciones
+        var allContents = document.querySelectorAll("[id^=\\"content-\\"]");
+        var allIcons = document.querySelectorAll("[id^=\\"icon-\\"]");
+        
+        for (var i = 0; i < allContents.length; i++) {
+            allContents[i].style.display = "none";
+        }
+        for (var i = 0; i < allIcons.length; i++) {
+            allIcons[i].style.transform = "rotate(0deg)";
+            allIcons[i].innerHTML = "▼";
+        }
+        
+        // Abrir la sección seleccionada
+        content.style.display = "block";
+        icon.style.transform = "rotate(180deg)";
+        icon.innerHTML = "▲";
+    } else {
+        // Cerrar la sección actual
+        content.style.display = "none";
+        icon.style.transform = "rotate(0deg)";
+        icon.innerHTML = "▼";
+    }
+}
+// Efectos de hover para los botones
+document.addEventListener("DOMContentLoaded", function() {
+    var buttons = document.querySelectorAll("button[onclick^=\\"toggleAccordion\\"]");
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener("mouseenter", function() {
+            this.style.backgroundColor = "#2c3e50";
+        });
+        buttons[i].addEventListener("mouseleave", function() {
+            this.style.backgroundColor = "#34495e";
+        });
+    }
+});
+<\/script>`;
+}
+function copiarCodigo() {
+    const codigo = document.getElementById('codigo-output').textContent;
+    navigator.clipboard.writeText(codigo).then(function() {
+        const btn = document.getElementById('btn-copiar');
+        const originalText = btn.textContent;
+        btn.textContent = '✅ ¡Copiado!';
+        btn.style.background = 'linear-gradient(135deg, #27ae60, #229954)';
+        setTimeout(function() {
+            btn.textContent = originalText;
+            btn.style.background = 'linear-gradient(135deg, #27ae60, #229954)';
+        }, 2000);
+        showNotification('Código copiado al portapapeles', 'success');
+    }).catch(function() {
+        showNotification('Error al copiar el código', 'error');
+    });
+}
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.classList.add('show'), 100);
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+// Event listeners para actualizar vista previa en tiempo real
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('titulo').addEventListener('input', updatePreview);
+    document.getElementById('capacidades').addEventListener('input', updatePreview);
+    document.getElementById('titulo-capacidades').addEventListener('input', updatePreview);
+    document.getElementById('titulo-contenidos').addEventListener('input', updatePreview);
+    
+    // Event listeners para contenidos
+    document.querySelectorAll('#contenidos-container .content-item input').forEach(input => {
+        input.addEventListener('input', updatePreview);
+    });
+});
+</script>
+</body>
+</html>
+          
